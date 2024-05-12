@@ -4,9 +4,9 @@ using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
-using WebSocketServer.Domain.Aggregates.UserEntities;
+using WebSocketServer.Domain.Users;
 
-namespace WebSocketServer.Domain.Entities;
+namespace WebSocketServer.Domain.Connection;
 public class WebSocketConnection
 {
     public User User { get; init; }

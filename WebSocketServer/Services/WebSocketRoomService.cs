@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Concurrent;
 using System.Net.WebSockets;
-using System.Text;
-using System.Threading.Tasks;
-using WebSocketServer.Domain.Aggregates.RoomEntities;
-using WebSocketServer.Domain.Entities;
+using WebSocketServer.Common;
+using WebSocketServer.Domain.Connection;
+using WebSocketServer.Domain.Rooms;
+using WebSocketServer.Domain.Rooms.Failures;
 
 namespace WebSocketServer.Services;
 public class WebSocketRoomService
@@ -27,13 +24,23 @@ public class WebSocketRoomService
         return _rooms.Values.Any(x => x.RemoveParticipant(userId));
     }
 
-    public IEnumerable<WebSocket> GetRecipientSocketsInUserRoom(Room? room)
+    public IEnumerable<WebSocket> GetRecipientSocketsInRoom(Room? room)
     {
         if (room == null)
             return Enumerable.Empty<WebSocket>();
 
         return _connectedClients
             .Where(x => room.ContainsParticipant(x.Key))
+            .Select(x => x.Value.WebSocket);
+    }
+
+    public IEnumerable<WebSocket> GetRecipientSocketsInRoomExceptUser(Room? room, Guid userId)
+    {
+        if (room == null)
+            return Enumerable.Empty<WebSocket>();
+
+        return _connectedClients
+            .Where(x => room.ContainsParticipant(x.Key) && x.Key != userId)
             .Select(x => x.Value.WebSocket);
     }
 
@@ -44,22 +51,23 @@ public class WebSocketRoomService
             .FirstOrDefault().Value;
     }
 
-    public bool AddUserToRoomByRoomName(Guid userId, string roomName)
+    public Result AddUserToRoomByRoomName(Guid userId, string roomName)
     {
         var room = _rooms
             .Where(x => x.Value.Name.Value == roomName)
             .FirstOrDefault().Value;
 
-        if (room != null)
-        {
-            room.AddParticipant(userId);
-            return true;
-        }
+        if (room == null)
+            return Result.Failure(new RoomDoesNotExistFailure(roomName));
 
-        return false;
+        if (room.ContainsParticipant(userId))
+            return Result.Failure(new AlreadyInRoomFailure(userId));
+
+        room.AddParticipant(userId);
+        return Result.Success();
     }
 
-    public bool RemoveUserFromRoomByRoomName(Guid userId, string roomName)
+    public Result RemoveUserFromRoomByRoomName(Guid userId, string roomName)
     {
         var room = _rooms
             .Where(x => x.Value.Name.Value == roomName)
@@ -68,9 +76,9 @@ public class WebSocketRoomService
         if (room != null)
         {
             room.RemoveParticipant(userId);
-            return true;
+            return Result.Success();
         }
 
-        return false;
+        return Result.Failure();
     }
 }

@@ -1,6 +1,8 @@
-﻿using WebSocketServer.Domain.Entities;
-using WebSocketServer.Domain.Factories;
-using WebSocketServer.Dtos;
+﻿using System.Net.WebSockets;
+using WebSocketServer.Domain.Connection;
+using WebSocketServer.Domain.Messaging;
+using WebSocketServer.Domain.Messaging.Factories;
+using WebSocketServer.Domain.Rooms.Failures;
 using WebSocketServer.Helpers;
 using WebSocketServer.Services.Extensions;
 
@@ -21,9 +23,9 @@ public class ChatCommandHandler
     {
         var valueTask = (webSocketMessage.Command, webSocketMessage.Room) switch
         {
-            (Command.JoinRoom, _) => JoinRoom(userConnection, webSocketMessage),
-            (Command.LeaveRoom, _) => LeaveRoom(userConnection, webSocketMessage),
-            (_, null) => NotInARoom(userConnection, webSocketMessage),
+            (Command.JoinRoom, _) => JoinRoomAsync(userConnection, webSocketMessage),
+            (Command.LeaveRoom, _) => LeaveRoomAsync(userConnection, webSocketMessage),
+            (_, null) => SendNotInARoomErrorAsync(userConnection, webSocketMessage),
             (_, _) => SendMessage(userConnection, webSocketMessage),
         };
 
@@ -48,7 +50,8 @@ public class ChatCommandHandler
         await _messageHandler.HandleMessageAsync(webSocketMessage.Recipients, serializedData);
     }
 
-    private async ValueTask SendErrorMessage(WebSocketConnection userConnection, WebSocketMessage webSocketMessage, string message)
+
+    private async ValueTask SendErrorMessageAsync(WebSocketConnection userConnection, WebSocketMessage webSocketMessage, string message)
     {
         var messageOutbound = MessageFactory.CreateErrorOutboundMessage(webSocketMessage.Message.FrontendId, message);
 
@@ -56,8 +59,15 @@ public class ChatCommandHandler
 
         await _messageHandler.HandleMessageAsync(userConnection.WebSocket, serializedData);
     }
+    private async ValueTask NotifyUsersAsync(IEnumerable<WebSocket> recipients, string message)
+    {
+        var messageOutbound = MessageFactory.CreateNotificationOutboundMessage(null, message);
 
-    private async ValueTask SendNotification(WebSocketConnection userConnection, WebSocketMessage webSocketMessage, string message)
+        var serializedData = JsonHelper.Serialize(messageOutbound);
+
+        await _messageHandler.HandleMessageAsync(recipients, serializedData);
+    }
+    private async ValueTask NotifyUserAsync(WebSocketConnection userConnection, WebSocketMessage webSocketMessage, string message)
     {
         var messageOutbound = MessageFactory.CreateNotificationOutboundMessage(webSocketMessage.Message.FrontendId, message);
 
@@ -66,48 +76,73 @@ public class ChatCommandHandler
         await _messageHandler.HandleMessageAsync(userConnection.WebSocket, serializedData);
     }
 
-    private async ValueTask NotInARoom(WebSocketConnection userConnection, WebSocketMessage webSocketMessage)
+    private async ValueTask SendNotInARoomErrorAsync(WebSocketConnection userConnection, WebSocketMessage webSocketMessage)
     {
-        await SendErrorMessage(userConnection, webSocketMessage, "You are not in any room.");
+        await SendErrorMessageAsync(userConnection, webSocketMessage, "You are not in any room.");
     }
 
-    private async ValueTask RoomDoesNotExist(WebSocketConnection userConnection, WebSocketMessage webSocketMessage, string roomName)
+    private async ValueTask SendRoomDoesNotExistErrorAsync(WebSocketConnection userConnection, WebSocketMessage webSocketMessage, string roomName)
     {
-        await SendErrorMessage(userConnection, webSocketMessage, $"Room '{roomName} does not exist!'");
+        await SendErrorMessageAsync(userConnection, webSocketMessage, $"Room '{roomName}' does not exist!'");
     }
-    private async ValueTask JoinRoom(WebSocketConnection userConnection, WebSocketMessage message)
+
+    private async ValueTask SendAlreadyInRoomErrorAsync(WebSocketConnection userConnection, WebSocketMessage webSocketMessage)
     {
-        var roomName = message.Message.Payload.Message.ParseCommandArgs();
+        await SendErrorMessageAsync(userConnection, webSocketMessage, $"You are already in that room.");
+    }
+    private async ValueTask JoinRoomAsync(WebSocketConnection userConnection, WebSocketMessage webSocketMessage)
+    {
+        var roomName = webSocketMessage.Message.Payload.Message.ParseCommandArgs();
+        var userAddedResult = _roomService.AddUserToRoomByRoomName(userConnection.User.Id.Value, roomName);
 
-        var userAdded = _roomService.AddUserToRoomByRoomName(userConnection.User.Id.Value, roomName);
-
-        if (!userAdded)
+        if (userAddedResult.Failures.Any(f => f is RoomDoesNotExistFailure))
         {
-            await RoomDoesNotExist(userConnection, message, roomName);
+            await SendRoomDoesNotExistErrorAsync(userConnection, webSocketMessage, roomName);
             return;
         }
 
-        await SendNotification(userConnection, message, $"Joined room '{roomName}'.");
+        if (userAddedResult.Failures.Any(f => f is AlreadyInRoomFailure))
+        {
+            await SendAlreadyInRoomErrorAsync(userConnection, webSocketMessage);
+            return;
+        }
+
+        var joinedRoom = _roomService.GetUserCurrentRoom(userConnection.User.Id.Value);
+        var usersInRoom = _roomService.GetRecipientSocketsInRoomExceptUser(joinedRoom, userConnection.User.Id.Value);
+
+        await SendUserJoinedNotificationAsync(userConnection, webSocketMessage, usersInRoom, roomName);
     }
 
-    private async ValueTask LeaveRoom(WebSocketConnection userConnection, WebSocketMessage webSocketMessage)
+    private async ValueTask SendUserJoinedNotificationAsync(WebSocketConnection userConnection, WebSocketMessage webSocketMessage, IEnumerable<WebSocket> usersInRoom, string roomName)
     {
-        var roomName = webSocketMessage.Room?.Name.Value;
+        await NotifyUserAsync(userConnection, webSocketMessage, $"Joined room '{roomName}'.");
+        await NotifyUsersAsync(usersInRoom, $"User '{userConnection.User.Name.Value}' joined the room.");
+    }
 
-        if (!string.IsNullOrEmpty(roomName))
+    private async ValueTask LeaveRoomAsync(WebSocketConnection userConnection, WebSocketMessage webSocketMessage)
+    {
+        var commandArgs = webSocketMessage.Message.Payload.Message.ParseCommandArgs();
+
+        if (!string.IsNullOrEmpty(commandArgs))
         {
-            await SendErrorMessage(userConnection, webSocketMessage, "The command /leaveroom takes no arguments.");
+            await SendErrorMessageAsync(userConnection, webSocketMessage, "The command /leaveroom takes no arguments.");
             return;
         }
 
         var userRemoved = _roomService.RemoveUserFromAllRooms(userConnection.User.Id.Value);
 
-        var task = userRemoved switch
+        ValueTask task = userRemoved switch
         {
-            true => SendNotification(userConnection, webSocketMessage, "Left room."),
-            false => NotInARoom(userConnection, webSocketMessage),
+            true => SendUserLeftRoomNotificationAsync(userConnection, webSocketMessage),
+            false => SendNotInARoomErrorAsync(userConnection, webSocketMessage),
         };
 
         await task;
+    }
+
+    private async ValueTask SendUserLeftRoomNotificationAsync(WebSocketConnection userConnection, WebSocketMessage webSocketMessage)
+    {
+        await NotifyUserAsync(userConnection, webSocketMessage, $"Left room '{webSocketMessage.Room?.Name.Value}'.");
+        await NotifyUsersAsync(webSocketMessage.Recipients, $"User '{userConnection.User.Name.Value}' left the room.");
     }
 }

@@ -172,6 +172,20 @@ function App() {
 			e.preventDefault();
 			addAndSendMessage();
 		}
+
+		if (e.key === "ArrowUp"){
+			setMessage(getLastUserMessage() ?? "");
+		}
+
+	}
+
+	function getLastUserMessage() : string | null {
+		for (let i = messages.length - 1; i >= 0; i--){
+			if (messages[i].userName == appState.userName){
+				return messages[i].message;
+			}
+		}
+		return null;
 	}
 
 	const textareaRef = useRef<HTMLTextAreaElement>(null);

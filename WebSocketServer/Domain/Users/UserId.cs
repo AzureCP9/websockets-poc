@@ -1,4 +1,4 @@
-﻿namespace WebSocketServer.Domain.Aggregates.UserEntities;
+﻿namespace WebSocketServer.Domain.Users;
 
 public class UserId
 {

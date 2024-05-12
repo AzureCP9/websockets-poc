@@ -1,4 +1,4 @@
-﻿using WebSocketServer.Domain.Entities;
+﻿using WebSocketServer.Domain.Messaging;
 
 namespace WebSocketServer.Dtos;
 public class MessageInboundDto

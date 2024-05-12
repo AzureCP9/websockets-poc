@@ -3,8 +3,9 @@ using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.WebSockets;
-using WebSocketServer.Domain.Entities;
-using WebSocketServer.Domain.Factories;
+using WebSocketServer.Domain.Connection;
+using WebSocketServer.Domain.Messaging;
+using WebSocketServer.Domain.Messaging.Factories;
 using WebSocketServer.Dtos;
 using WebSocketServer.Helpers;
 using WebSocketServer.Services.Extensions;
@@ -73,9 +74,6 @@ public class WebSocketService
             var errorDtoJson = JsonHelper.Serialize(messageOutbound);
 
             await _messageHandler.HandleMessageAsync(webSocket, errorDtoJson);
-
-
-            //await webSocket.CloseAsync(WebSocketCloseStatus.InternalServerError, "Internal server error!", CancellationToken.None);
         }
         finally
         {
@@ -105,7 +103,7 @@ public class WebSocketService
             var command = messageInboundDto.Payload.Message.ToCommand();
 
             var userRoom = _roomService.GetUserCurrentRoom(connection.User.Id.Value);
-            var recipients = _roomService.GetRecipientSocketsInUserRoom(userRoom);
+            var recipients = _roomService.GetRecipientSocketsInRoom(userRoom);
 
             var webSocketMessage = new WebSocketMessage(command, recipients, messageInboundDto, userRoom);
 

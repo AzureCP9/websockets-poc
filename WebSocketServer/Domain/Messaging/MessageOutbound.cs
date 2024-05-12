@@ -1,4 +1,4 @@
-﻿namespace WebSocketServer.Domain.Entities;
+﻿namespace WebSocketServer.Domain.Messaging;
 public record MessageOutbound
 {
     public MessageType Type { get; init; }

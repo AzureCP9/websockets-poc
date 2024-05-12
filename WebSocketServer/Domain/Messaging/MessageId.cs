@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WebSocketServer.Domain.Entities;
+namespace WebSocketServer.Domain.Messaging;
 public class MessageId
 {
     public Guid Value { get; init; }

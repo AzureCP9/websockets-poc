@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WebSocketServer.Domain.Aggregates.RoomEntities;
 using WebSocketServer.Domain.ValueTypes;
 
-namespace WebSocketServer.Domain.Aggregates.UserEntities;
+namespace WebSocketServer.Domain.Users;
 public class User
 {
     public UserId Id { get; init; }

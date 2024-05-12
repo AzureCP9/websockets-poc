@@ -1,6 +1,4 @@
-﻿using WebSocketServer.Domain.Entities;
-
-namespace WebSocketServer.Domain.Factories;
+﻿namespace WebSocketServer.Domain.Messaging.Factories;
 public static class MessageFactory
 {
     public static MessageOutbound CreateNormalOutboundMessage(Guid frontendId, MessageOutboundUserMessage? userMessage)
@@ -12,7 +10,7 @@ public static class MessageFactory
     {
         return new MessageOutbound(MessageType.Error, frontendId, errorMessage, userMessage);
     }
-    public static MessageOutbound CreateNotificationOutboundMessage(Guid frontendId, string notificationMessage, MessageOutboundUserMessage? userMessage = null)
+    public static MessageOutbound CreateNotificationOutboundMessage(Guid? frontendId, string notificationMessage, MessageOutboundUserMessage? userMessage = null)
     {
         return new MessageOutbound(MessageType.Notification, frontendId, notificationMessage, userMessage);
     }

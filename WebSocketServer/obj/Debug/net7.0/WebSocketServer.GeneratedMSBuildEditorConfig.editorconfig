@@ -9,3 +9,5 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = WebSocketServer
 build_property.ProjectDir = C:\Users\cp199\OneDrive\Documentos\Moroni\Learning\websockets\WebSocketServer\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 

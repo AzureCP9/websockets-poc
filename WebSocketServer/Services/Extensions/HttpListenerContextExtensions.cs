@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
+﻿using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 using System.Web;
-using WebSocketServer.Domain.Entities;
+using WebSocketServer.Domain.Connection;
 
 namespace WebSocketServer.Services.Extensions;
 public static class HttpListenerContextExtensions

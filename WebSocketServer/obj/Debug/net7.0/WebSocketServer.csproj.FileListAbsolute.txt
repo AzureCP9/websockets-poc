@@ -14,7 +14,6 @@ C:\Users\cp199\OneDrive\Documentos\Moroni\Learning\websockets\WebSocketServer\ob
 C:\Users\cp199\OneDrive\Documentos\Moroni\Learning\websockets\WebSocketServer\obj\Debug\net7.0\ref\WebSocketServer.dll
 C:\Users\cp199\OneDrive\Documentos\Moroni\Learning\websockets\WebSocketServer\bin\Debug\net7.0\Newtonsoft.Json.dll
 C:\Users\cp199\OneDrive\Documentos\Moroni\Learning\websockets\WebSocketServer\obj\Debug\net7.0\WebSocketServer.csproj.AssemblyReference.cache
-C:\Users\cp199\OneDrive\Documentos\Moroni\Learning\websockets\WebSocketServer\obj\Debug\net7.0\WebSocketServer.csproj.CopyComplete
 C:\Users\cp199\OneDrive\Documentos\Moroni\Learning\websockets\WebSocketServer\bin\Debug\net7.0\Microsoft.Extensions.Configuration.dll
 C:\Users\cp199\OneDrive\Documentos\Moroni\Learning\websockets\WebSocketServer\bin\Debug\net7.0\Microsoft.Extensions.Configuration.Abstractions.dll
 C:\Users\cp199\OneDrive\Documentos\Moroni\Learning\websockets\WebSocketServer\bin\Debug\net7.0\Microsoft.Extensions.Configuration.Binder.dll
@@ -30,3 +29,5 @@ C:\Users\cp199\OneDrive\Documentos\Moroni\Learning\websockets\WebSocketServer\bi
 C:\Users\cp199\OneDrive\Documentos\Moroni\Learning\websockets\WebSocketServer\bin\Debug\net7.0\System.Text.Encodings.Web.dll
 C:\Users\cp199\OneDrive\Documentos\Moroni\Learning\websockets\WebSocketServer\bin\Debug\net7.0\System.Text.Json.dll
 C:\Users\cp199\OneDrive\Documentos\Moroni\Learning\websockets\WebSocketServer\bin\Debug\net7.0\runtimes\browser\lib\net7.0\System.Text.Encodings.Web.dll
+C:\Users\cp199\OneDrive\Documentos\Moroni\Learning\websockets\WebSocketServer\obj\Debug\net7.0\WebSocketServer.sourcelink.json
+C:\Users\cp199\OneDrive\Documentos\Moroni\Learning\websockets\WebSocketServer\obj\Debug\net7.0\WebSocke.8674E6E9.Up2Date

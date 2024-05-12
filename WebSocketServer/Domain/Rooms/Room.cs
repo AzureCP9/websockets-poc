@@ -1,6 +1,6 @@
 ﻿using WebSocketServer.Domain.ValueTypes;
 
-namespace WebSocketServer.Domain.Aggregates.RoomEntities;
+namespace WebSocketServer.Domain.Rooms;
 public class Room
 {
     public RoomId Id { get; init; }

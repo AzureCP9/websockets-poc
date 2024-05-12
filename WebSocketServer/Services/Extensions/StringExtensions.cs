@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WebSocketServer.Domain.Entities;
+﻿using System.Text;
+using WebSocketServer.Domain.Messaging;
 using WebSocketServer.Helpers;
 
 namespace WebSocketServer.Services.Extensions;

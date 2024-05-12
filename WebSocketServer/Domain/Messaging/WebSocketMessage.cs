@@ -1,8 +1,8 @@
 ﻿using System.Net.WebSockets;
-using WebSocketServer.Domain.Aggregates.RoomEntities;
+using WebSocketServer.Domain.Rooms;
 using WebSocketServer.Dtos;
 
-namespace WebSocketServer.Domain.Entities;
+namespace WebSocketServer.Domain.Messaging;
 public class WebSocketMessage
 {
     public Command Command { get; init; }
